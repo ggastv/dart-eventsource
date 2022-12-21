@@ -5,14 +5,13 @@ import "dart:io" as io;
 import "package:sync/waitgroup.dart";
 
 import "publisher.dart";
-import "src/event.dart";
 import "src/encoder.dart";
 
 /// Create a handler to serve [io.HttpRequest] objects for the specified
 /// channel.
 /// This method can be passed to the [io.HttpServer.listen] method.
 Function createIoHandler(EventSourcePublisher publisher,
-    {String channel: "", bool gzip: false}) {
+    {String channel = "", bool gzip = false}) {
   void ioHandler(io.HttpRequest request) {
     io.HttpResponse response = request.response;
 

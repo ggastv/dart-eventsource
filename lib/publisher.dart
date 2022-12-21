@@ -1,7 +1,5 @@
 library eventsource.server;
 
-export "src/event.dart";
-
 import "dart:async";
 
 import "package:logging/logging.dart" as log;
@@ -9,6 +7,8 @@ import "package:logging/logging.dart" as log;
 import "src/event.dart";
 import "src/event_cache.dart";
 import "src/proxy_sink.dart";
+
+export "src/event.dart";
 
 /// An EventSource publisher. It can manage different channels of events.
 /// This class forms the backbone of an EventSource server. To actually serve
@@ -27,9 +27,9 @@ class EventSourcePublisher extends Sink<Event> {
   /// If your Event's id properties are not incremental using
   /// [Comparable.compare], set [comparableIds] to false.
   EventSourcePublisher({
-    int cacheCapacity: 0,
-    bool comparableIds: false,
-    bool enableLogging: true,
+    int cacheCapacity = 0,
+    bool comparableIds = false,
+    bool enableLogging = true,
   }) {
     if (cacheCapacity > 0) {
       _cache = new EventCache(cacheCapacity: cacheCapacity);
@@ -51,7 +51,7 @@ class EventSourcePublisher extends Sink<Event> {
   /// Add a publication to the specified channels.
   /// By default, only adds to the default channel.
   @override
-  void add(Event event, {Iterable<String> channels: const [""]}) {
+  void add(Event event, {Iterable<String> channels = const [""]}) {
     for (String channel in channels) {
       List<ProxySink>? subs = _subsByChannel[channel];
       if (subs == null) {
@@ -70,7 +70,7 @@ class EventSourcePublisher extends Sink<Event> {
   /// All the connections with the subscribers to this channels will be closed.
   /// By default only closes the default channel.
   @override
-  void close({Iterable<String> channels: const [""]}) {
+  void close({Iterable<String> channels = const [""]}) {
     for (String channel in channels) {
       List<ProxySink>? subs = _subsByChannel[channel];
       if (subs == null) {
