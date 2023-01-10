@@ -133,7 +133,7 @@ class EventSource extends Stream<Event> {
         _streamController.addError(error);
       }
       await new Future.delayed(backoff);
-      backoff *= 2;
+      // backoff *= 2;
     }
   }
 
