@@ -1,6 +1,6 @@
 name: eventsource
 description: A client and server implementation of Server-Sent Events.
-version: 0.4.1
+version: 0.4.2
 homepage: https://github.com/stevenroose/dart-eventsource
 
 environment:
