@@ -12,6 +12,7 @@ dependencies:
   http_parser: ^4.0.0
   logging: ^1.1.1
   sync: ^0.3.0
+  rxdart: ^0.27.7
 
 dev_dependencies:
   test: ^1.22.2

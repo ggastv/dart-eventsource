@@ -6,6 +6,7 @@ import "dart:convert";
 import "package:http/http.dart" as http;
 import "package:http/src/utils.dart" show encodingForCharset;
 import "package:http_parser/http_parser.dart" show MediaType;
+import "package:rxdart/rxdart.dart";
 
 import "src/decoder.dart";
 import "src/event.dart";
@@ -32,6 +33,8 @@ class EventSourceSubscriptionException extends Event implements Exception {
 /// An EventSource client that exposes a [Stream] of [Event]s.
 class EventSource extends Stream<Event> {
   // interface attributes
+
+  StreamController<void> _cancelCtrl = StreamController.broadcast();
 
   final Uri url;
   final Map<String, String>? headers;
@@ -86,6 +89,11 @@ class EventSource extends Stream<Event> {
       _streamController.stream.listen(onData,
           onError: onError, onDone: onDone, cancelOnError: cancelOnError);
 
+  cancel() {
+    _cancelCtrl.add(null);
+    client.close();
+  }
+
   /// Attempt to start a new connection.
   Future _start() async {
     _readyState = EventSourceReadyState.CONNECTING;
@@ -109,7 +117,7 @@ class EventSource extends Stream<Event> {
     }
     _readyState = EventSourceReadyState.OPEN;
     // start streaming the data
-    response.stream.transform(_decoder).listen(
+    response.stream.transform(_decoder).takeUntil(_cancelCtrl.stream).listen(
         (Event event) {
           _streamController.add(event);
           _lastEventId = event.id;
