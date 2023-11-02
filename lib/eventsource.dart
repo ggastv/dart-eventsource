@@ -100,26 +100,35 @@ class EventSource extends Stream<Event> {
     });
     request.body = _body;
 
-    var response = await client.send(request);
-    if (response.statusCode != 200) {
-      // server returned an error
-      var bodyBytes = await response.stream.toBytes();
-      String body = _encodingForHeaders(response.headers).decode(bodyBytes);
-      throw new EventSourceSubscriptionException(response.statusCode, body);
+    StreamSubscription<Event>? sub;
+    try {
+      var response = await client.send(request);
+      if (response.statusCode != 200) {
+        // server returned an error
+        var bodyBytes = await response.stream.toBytes();
+        String body = _encodingForHeaders(response.headers).decode(bodyBytes);
+        throw new EventSourceSubscriptionException(response.statusCode, body);
+      }
+      _readyState = EventSourceReadyState.OPEN;
+      // start streaming the data
+      sub = response.stream.transform(_decoder).listen(
+          (Event event) {
+            _streamController.add(event);
+            _lastEventId = event.id;
+          },
+          cancelOnError: true,
+          onError: (err) {
+            _streamController.addError(err);
+            _retry();
+          },
+          onDone: () => _readyState = EventSourceReadyState.CLOSED);
+    } catch (err) {
+      _streamController.addError(err);
+      if (sub != null) {
+        sub.cancel();
+        _readyState = EventSourceReadyState.CLOSED;
+      }
     }
-    _readyState = EventSourceReadyState.OPEN;
-    // start streaming the data
-    response.stream.transform(_decoder).listen(
-        (Event event) {
-          _streamController.add(event);
-          _lastEventId = event.id;
-        },
-        cancelOnError: true,
-        onError: (err) {
-          _streamController.addError(err);
-          _retry();
-        },
-        onDone: () => _readyState = EventSourceReadyState.CLOSED);
   }
 
   /// Retries until a new connection is established. Uses exponential backoff.
